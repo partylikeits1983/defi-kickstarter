@@ -3,7 +3,6 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract kickstarter {
 
-
     struct project {
         // address of deloyer
         address owner;
@@ -12,9 +11,9 @@ contract kickstarter {
         // funding target
         uint fundingTarget;
         // time of creation
-        uint timeNow;
-        // min 1 day max 60
-        uint fundingTime;
+        uint timeNow; 
+        // min 1 day max 60 from timeNow
+        uint expiration;
         // project description
         string ipfsURL;
         // current funding amount
@@ -23,11 +22,11 @@ contract kickstarter {
     }
 
     struct investment {
-
+        // project owner
         address projectOwner;
-
+        // project ID
         uint projectID;
-
+        // amount to invest
         uint amount;
 
     }
@@ -55,19 +54,17 @@ contract kickstarter {
         // @dev array of IDs of owner projects
         ID = listmappingOwner[msg.sender].length;
 
+        // @dev project funding expiration time
+        uint expiration;
+
+        expiration = block.timestamp + fundingTime;
 
         projects[msg.sender][ID].owner = msg.sender;
-
         projects[msg.sender][ID].payee = payee;
-
         projects[msg.sender][ID].fundingTarget = fundingTarget;
-
         projects[msg.sender][ID].timeNow = block.timestamp;
-
-        projects[msg.sender][ID].fundingTime = fundingTime;
-
+        projects[msg.sender][ID].expiration = expiration;
         projects[msg.sender][ID].ipfsURL = ipfsURL;
-
 
         // @dev push .length to array
         listmappingOwner[msg.sender].push(ID);
@@ -77,6 +74,8 @@ contract kickstarter {
 
     function invest(address owner, uint ID) public payable {
 
+        require(block.timestamp <= projects[owner][ID].expiration);
+
         investments[msg.sender][owner][ID].projectOwner = owner;
         investments[msg.sender][owner][ID].projectID = ID;
         investments[msg.sender][owner][ID].amount = msg.value;
@@ -84,7 +83,6 @@ contract kickstarter {
         projects[owner][ID].funding += msg.value; 
 
     }
-
 
 
     function withdraw(address owner, uint ID, uint amount) public {
@@ -105,19 +103,16 @@ contract kickstarter {
     function endFundingRound(address owner, uint ID) public {
 
         // @dev there may be a more efficient way of doing this
-        uint t1;
-        uint t2;
-        uint timeNow;
-
         address payee;
         uint amount;
 
-        t1 = projects[msg.sender][ID].timeNow;
-        t2 = projects[msg.sender][ID].fundingTime;
+        uint timeNow;
+        uint expiration;
 
-        timeNow = block.timestamp;        
+        timeNow = block.timestamp; 
+        expiration = projects[owner][ID].expiration;
 
-        require(timeNow >= t1 + t2);
+        require(timeNow >= expiration);
 
         payee = projects[owner][ID].payee;
 
