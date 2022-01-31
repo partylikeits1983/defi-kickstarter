@@ -40,8 +40,6 @@ contract kickstarter {
     // @dev get number of listed services owner address
     mapping(address => uint[]) private listmappingOwner;
 
-    // @dev ID of owner address project
-    uint private ID;
 
     function createProject( 
         address payee, 
@@ -50,6 +48,8 @@ contract kickstarter {
         string memory ipfsURL) 
         
         public {
+        
+        uint ID;
 
         // @dev array of IDs of owner projects
         ID = listmappingOwner[msg.sender].length;
@@ -123,6 +123,7 @@ contract kickstarter {
     }
 
 }
+
 
 
 
