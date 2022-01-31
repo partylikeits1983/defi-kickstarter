@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.0;
 
-contract kickstarter {
+contract Kickstarter {
 
-    struct project {
+    struct Project {
         // address of deloyer
         address owner;
         // address of payee (can be owner)
@@ -21,7 +21,7 @@ contract kickstarter {
 
     }
 
-    struct investment {
+    struct Investment {
         // project owner
         address projectOwner;
         // project ID
@@ -32,10 +32,10 @@ contract kickstarter {
     }
 
     // @dev owner address can list multiple projects
-    mapping(address => mapping (uint => project)) public projects;
+    mapping(address => mapping (uint => Project)) public projects;
 
     // @dev user address can invest in multiple projects from multiple addresses
-    mapping(address => mapping (address => mapping (uint => investment))) public investments;
+    mapping(address => mapping (address => mapping (uint => Investment))) public investments;
 
     // @dev get number of listed services owner address
     mapping(address => uint[]) private listmappingOwner;
@@ -47,7 +47,7 @@ contract kickstarter {
         uint fundingTime,
         string memory ipfsURL) 
         
-        public {
+        external {
         
         uint ID;
 
@@ -72,20 +72,20 @@ contract kickstarter {
         }
 
 
-    function invest(address owner, uint ID) public payable {
+    function invest(address owner, uint ID) external payable {
 
         require(block.timestamp <= projects[owner][ID].expiration);
 
         investments[msg.sender][owner][ID].projectOwner = owner;
         investments[msg.sender][owner][ID].projectID = ID;
         investments[msg.sender][owner][ID].amount = msg.value;
-    
+
         projects[owner][ID].funding += msg.value; 
 
     }
 
 
-    function withdraw(address owner, uint ID, uint amount) public {
+    function withdraw(address owner, uint ID, uint amount) external {
 
         amount = investments[msg.sender][owner][ID].amount;
 
@@ -100,9 +100,9 @@ contract kickstarter {
     }
 
 
-    function endFundingRound(address owner, uint ID) public {
+    // @dev anyone can call this function and end the funding round 
+    function endFundingRound(address owner, uint ID) external {
 
-        // @dev there may be a more efficient way of doing this
         address payee;
         uint amount;
 
